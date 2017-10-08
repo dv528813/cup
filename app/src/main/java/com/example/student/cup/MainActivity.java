@@ -8,6 +8,11 @@ import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.ImageButton;
+import android.widget.ImageView;
+import android.widget.TextView;
+
+import com.example.student.cup.Account.Info;
+import com.example.student.cup.Account.Sign;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -21,6 +26,7 @@ public class MainActivity extends AppCompatActivity {
     ImageButton settinglink;
     ImageButton messagelink;
 
+    Sign gSign;
 
 //    Button next;
 
@@ -28,6 +34,9 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.layout_welcome);    // 設定歡迎 Layout
+
+        // ==========取得 Account 資訊==========
+        gSign = new Sign(MainActivity.this);               // 取得 Account 資訊
 
         // ==========計時 n 秒後更換 Layout==========
         Runnable rab = new Runnable() {
@@ -94,7 +103,6 @@ public class MainActivity extends AppCompatActivity {
         lp.set(1, p);   // 刪除計畫1 的商品0
 
 
-
     }
 
 
@@ -158,6 +166,52 @@ public class MainActivity extends AppCompatActivity {
         cal.add(Calendar.HOUR, hh);        //小時+hh
         cal.add(Calendar.MINUTE, mm);      //分+mm
         return cal;
+    }
+
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        // ====== Get Account Information ======
+        // Result returned from launching the Intent from GoogleSignInApi.getSignInIntent(...);
+        if (requestCode == Sign.RC_SIGN_IN) {
+
+            // ====== 取得資訊放置於 Info class ======
+            gSign.Result(data);
+
+            // ====== 建立執行緒等待處理顯示 ======
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+
+                    // ====== 等待歡迎頁面結束 ======
+                    while ((findViewById(R.id.TextViewName) == null)
+                            || (findViewById(R.id.ImageViewIcon) == null)
+                            || (Info.gDisplayNameNick == null)
+                            || (Info.gPhotoUrlBitmap == null)
+                            ) {
+                        ;
+                    }
+
+                    // ====== 顯示資訊於UI ======
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+
+                            ((TextView) findViewById(R.id.TextViewName)).setText(Info.gDisplayNameNick);
+                            ((ImageView) findViewById(R.id.ImageViewIcon)).setImageBitmap(Info.gPhotoUrlBitmap);
+
+                        }
+                    });
+
+                }
+            }).start();
+
+
+        }
+
+
     }
 
 
