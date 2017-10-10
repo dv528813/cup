@@ -1,10 +1,13 @@
 package com.example.student.cup;
 
-import android.accounts.Account;
-import android.accounts.AccountManager;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.ImageButton;
@@ -13,6 +16,7 @@ import android.widget.TextView;
 
 import com.example.student.cup.Account.Info;
 import com.example.student.cup.Account.Sign;
+import com.example.student.cup.Network.Net;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -20,6 +24,9 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+
+import static com.example.student.cup.Account.Info.gEmail;
+import static com.example.student.cup.Account.Info.gLoginOk;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -35,20 +42,24 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.layout_welcome);    // 設定歡迎 Layout
 
-        // ==========取得 Account 資訊==========
-        gSign = new Sign(MainActivity.this);               // 取得 Account 資訊
+        // ==========檢查Network==========
+        if (Net.NetCheck(this) == false) {
+            openWifi();                            // 提示開啟WIFI
+        }
 
         // ==========計時 n 秒後更換 Layout==========
         Runnable rab = new Runnable() {
             @Override
             public void run() {
                 setContentView(R.layout.activity_main);     //設定 Layout
+                runLoging();                               //執行登入程序
             }
         };
         new Handler().postDelayed(rab, 5000);    // 5 sec 後轉跳主頁
 
 
         settinglink = (ImageButton) findViewById(R.id.settinglink);
+
         messagelink = (ImageButton) findViewById(R.id.messagelink);
 
 
@@ -106,7 +117,29 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-//    public void next(View v)
+    @Override
+    public void onBackPressed() {
+        //super.onBackPressed();
+
+        new AlertDialog.Builder(this)
+                .setMessage("您要離開應用程式？")
+                .setPositiveButton("繼續", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        ;
+                    }
+                })
+                .setNegativeButton("離開", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        finish();
+                    }
+                })
+                .show();
+
+    }
+
+    //    public void next(View v)
 //    {
 //
 //        Intent in = new Intent();
@@ -143,9 +176,12 @@ public class MainActivity extends AppCompatActivity {
 
     // ====== 取得帳戶資訊 ======
     public String getGoogleId() {
-        AccountManager am = (AccountManager) getSystemService(ACCOUNT_SERVICE);
-        Account[] aGoogle = am.getAccountsByType("com.google");
-        return aGoogle[0].toString();     // 第一筆帳戶
+//        AccountManager am = (AccountManager) getSystemService(ACCOUNT_SERVICE);
+//        Account[] aGoogle = am.getAccountsByType("com.google");
+//        return aGoogle[0].toString();     // 第一筆帳戶
+
+        return gEmail;
+
     }
 
     // ====== 截止時間換算 ======
@@ -177,40 +213,97 @@ public class MainActivity extends AppCompatActivity {
         // Result returned from launching the Intent from GoogleSignInApi.getSignInIntent(...);
         if (requestCode == Sign.RC_SIGN_IN) {
 
-            // ====== 取得資訊放置於 Info class ======
+            // ====== 取得帳戶資訊並放置於 Info class ======
             gSign.Result(data);
-
-            // ====== 建立執行緒等待處理顯示 ======
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-
-                    // ====== 等待歡迎頁面結束 ======
-                    while ((findViewById(R.id.TextViewName) == null)
-                            || (findViewById(R.id.ImageViewIcon) == null)
-                            || (Info.gDisplayNameNick == null)
-                            || (Info.gPhotoUrlBitmap == null)
-                            ) {
-                        ;
-                    }
-
-                    // ====== 顯示資訊於UI ======
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-
-                            ((TextView) findViewById(R.id.TextViewName)).setText(Info.gDisplayNameNick);
-                            ((ImageView) findViewById(R.id.ImageViewIcon)).setImageBitmap(Info.gPhotoUrlBitmap);
-
-                        }
-                    });
-
-                }
-            }).start();
-
 
         }
 
+    }
+
+
+    public void openWifi() {
+
+        //若wifi狀態為關閉則將它開啟
+        WifiManager wfm = ((WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE));
+        if (!wfm.isWifiEnabled()) {
+
+            new AlertDialog.Builder(this)
+                    .setMessage("應用程式要求開啟 Wi-Fi 功能。")
+                    .setPositiveButton("允許", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+                            ((WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE)).setWifiEnabled(true);
+                        }
+                    })
+                    .setNegativeButton("拒絕", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+                            ;
+                        }
+                    })
+                    .show();
+
+        }
+
+    }
+
+
+    public final void runOnUiTextView(final int id, final CharSequence cs) {
+
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                ((TextView) findViewById(id)).setText(cs);
+            }
+        });
+
+    }
+
+    public final void runOnUiImageView(final int id, final Bitmap bm) {
+
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                ((ImageView) findViewById(id)).setImageBitmap(bm);
+            }
+        });
+
+    }
+
+    public final void runLoging() {
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+
+//                // ====== 等待歡迎頁面結束 ======
+//                while ((findViewById(R.id.TextViewName) == null)
+//                        || (findViewById(R.id.ImageViewIcon) == null)
+//                        ) {
+//                    ;
+//                }
+
+                runOnUiTextView(R.id.TextViewName, "＜尚未連接網路＞");
+                while (Net.NetCheck(getApplicationContext()) == false) {
+                    ;
+                }
+
+                runOnUiTextView(R.id.TextViewName, "＜正在登入帳戶＞");
+                // ==========取得 Account 資訊==========
+                gSign = new Sign(MainActivity.this);   // 取得 Account 資訊
+                while (gLoginOk == false) {
+                    ;
+                }
+
+                gSign.dispData();   // 準備暱稱及圖
+                runOnUiTextView(R.id.TextViewName, Info.gDisplayNameNick);
+                while (Info.gPhotoUrlBitmap == null) {
+                    ;
+                }
+                runOnUiImageView(R.id.ImageViewIcon, Info.gPhotoUrlBitmap);
+
+            }
+        }).start();
 
     }
 

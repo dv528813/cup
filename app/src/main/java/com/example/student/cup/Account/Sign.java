@@ -12,6 +12,8 @@ import com.google.android.gms.auth.api.signin.GoogleSignInResult;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 
+import static com.example.student.cup.TOOLS.delay;
+
 /**
  * Created by Felix on 2017/10/8.
  */
@@ -23,6 +25,7 @@ public class Sign {
     private GoogleApiClient mGoogleApiClient;
     private FragmentActivity act;
 
+    private GoogleSignInResult gResult = null;
 
     public Sign(final FragmentActivity act) {
 
@@ -70,7 +73,7 @@ public class Sign {
     }
 
 
-    private void SignIn() {
+    public void SignIn() {
 
         Intent signInIntent = Auth.GoogleSignInApi.getSignInIntent(mGoogleApiClient);
         act.startActivityForResult(signInIntent, RC_SIGN_IN);
@@ -80,12 +83,28 @@ public class Sign {
 
     public void Result(Intent data) {
 
-        GoogleSignInResult result = Auth.GoogleSignInApi.getSignInResultFromIntent(data);
+        gResult = Auth.GoogleSignInApi.getSignInResultFromIntent(data);
 
-        Log.d(Sign.TAG, "SignInResult:" + result.isSuccess());
-        if (result.isSuccess()) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+
+                while (Result() == false) {
+                    delay(1000);
+                }
+                Info.gLoginOk = true;
+
+            }
+        }).start();
+
+    }
+
+    public boolean Result() {
+
+        Log.d(Sign.TAG, "SignInResult:" + gResult.isSuccess());
+        if (gResult.isSuccess()) {
             // Signed in successfully, show authenticated UI.
-            GoogleSignInAccount acct = result.getSignInAccount();
+            GoogleSignInAccount acct = gResult.getSignInAccount();
 
             Info.gEmail = acct.getEmail();
             Info.gDisplayName = acct.getDisplayName();
@@ -94,11 +113,19 @@ public class Sign {
             Info.gId = acct.getId();
             Info.gPhotoUrl = acct.getPhotoUrl();
 
-            Info.gDisplayNameNick = Info.gDisplayName;
-            new GetUrlImg(act/*, iv*/).execute(Info.gPhotoUrl);
+            return true;
+
+        } else {
+
+            return false;
 
         }
 
+    }
+
+    public void dispData() {
+        Info.gDisplayNameNick = Info.gDisplayName;
+        new GetUrlImg(/*act, iv*/).execute(Info.gPhotoUrl);
     }
 
 

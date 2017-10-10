@@ -19,4 +19,6 @@ public final class Info {
     public static String gDisplayNameNick = null;
     public static Bitmap gPhotoUrlBitmap = null;
 
+    public static boolean gLoginOk = false;
+
 }

@@ -1,6 +1,5 @@
 package com.example.student.cup.Account;
 
-import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
@@ -19,7 +18,7 @@ public class GetUrlImg extends AsyncTask<Uri, Integer, Bitmap> {
 //    private ImageView imageView;
 //    private ProgressDialog progressDialog;
 
-    public GetUrlImg(Context context/*, ImageView imageView*/) {
+    public GetUrlImg(/*Context context, ImageView imageView*/) {
 //        this.imageView = imageView;
 
 //        progressDialog = new ProgressDialog(context);
@@ -54,6 +53,16 @@ public class GetUrlImg extends AsyncTask<Uri, Integer, Bitmap> {
     protected void onPostExecute(Bitmap bitmap) {
 //        progressDialog.dismiss();
 //        imageView.setImageBitmap(bitmap);
-        Info.gPhotoUrlBitmap = bitmap;
+
+        if (bitmap == null) {       //未取得
+            new GetUrlImg().execute(Info.gPhotoUrl);    //繼續執行
+        } else {                    //已取得
+            Info.gPhotoUrlBitmap = bitmap;
+        }
+
+//        Info.gPhotoUrlBitmap = bitmap;
+
     }
+
+
 }
