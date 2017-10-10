@@ -6,30 +6,27 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
 
-public class Main3Activity extends AppCompatActivity {
+public class SetupActivity extends AppCompatActivity {
 
+    Button home;
 
-    Button cancel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main3);
+        setContentView(R.layout.activity_setup);
 
+        home = (Button) findViewById(R.id.home);
 
-        cancel=(Button)findViewById(R.id.cancel);
     }
 
-
-    public void cancel(View v)
-    {
+    public void home(View v) {
 
         Intent in = new Intent();
-        in.setClass(Main3Activity.this,Main2Activity.class);
-        startActivity(in);
-
+        in.setClass(SetupActivity.this, MainActivity.class);
+//        startActivity(in);
+        finish();
     }
-
 
 
 }

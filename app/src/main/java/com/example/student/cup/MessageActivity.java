@@ -6,7 +6,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
 
-public class message extends AppCompatActivity {
+public class MessageActivity extends AppCompatActivity {
 
     Button home;
 
@@ -26,8 +26,9 @@ public class message extends AppCompatActivity {
     {
 
         Intent in = new Intent();
-        in.setClass(message.this,Main2Activity.class);
-        startActivity(in);
+        in.setClass(MessageActivity.this,MainActivity.class);
+//        startActivity(in);
+        finish();
 
     }
 }
